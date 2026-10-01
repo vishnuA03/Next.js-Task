@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  email       String      @unique
+  name        String?
+  password    String
+  lastLoginAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  loginLogs   LoginLog[]
+  tasks       Task[]
+  savedItems  SavedItem[]
+
+  @@map("users")
+}
+
+model LoginLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  userAgent String?
+  status    String   // "SUCCESS" | "FAILED"
+  createdAt DateTime @default(now())
+
+  @@map("login_logs")
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?  @db.Text
+  completed   Boolean  @default(false)
+  category    String?
+  priority    String   @default("MEDIUM")
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tasks")
+}
+
+model SavedItem {
+  id          Int      @id @default(autoincrement())
+  externalId  Int
+  title       String
+  description String?  @db.Text
+  category    String?
+  price       Float?
+  thumbnail   String?
+  source      String   @default("dummyjson")
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, externalId, source])
+  @@map("saved_items")
+}
